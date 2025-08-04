@@ -26,7 +26,7 @@ const app = express()
 
 const mongo = new MongoClient(process.env.MONGODB_URI);
 await mongo.connect();
-const db = mongo.db(process.env.MONGODB_DB || 'chatApp');
+const db = mongo.db(process.env.MONGODB_DB);
 
 app.get('/api/public', (_req, res) => res.json({ message: 'public' }));
 
