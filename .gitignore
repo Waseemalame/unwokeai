@@ -1,0 +1,30 @@
+# Node modules
+backend/node_modules/
+frontend/node_modules/
+
+# Build outputs
+backend/public/
+frontend/dist/
+
+# Environment variables
+backend/.env
+frontend/.env
+backend/.env.*
+frontend/.env.*
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Misc system files
+.DS_Store
+Thumbs.db
+
+# Render build cache
+.render/
+
+# Secret files (Firebase Admin key if used as a file later)
+*.secret.json
+backend/firebase.secret.json
