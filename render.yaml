@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: my-monolith
+    name: unwokeai
     runtime: node
     plan: free
     rootDir: backend
