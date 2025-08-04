@@ -105,14 +105,6 @@ cd ../backend && npm start
 
 ---
 
-## Testing
-
-1. Open the frontend URL.
-2. Sign up and log in.
-3. Click **Test API** to confirm successful backend communication.
-
----
-
 ## Deployment (Render)
 
 This project includes a `.render.yaml` for automated deployment on Render.
