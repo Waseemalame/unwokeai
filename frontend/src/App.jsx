@@ -18,15 +18,16 @@ export default function App() {
   }, []);
 
   const signup = () => createUserWithEmailAndPassword(auth, email, password);
-  const login = () => signInWithEmailAndPassword(auth, email, password);
-
-  const testApi = async () => {
+  const login = async () => {signInWithEmailAndPassword(auth, email, password)
+    
     const token = await auth.currentUser.getIdToken();
     const res = await axios.post('/api/hello', {}, {
       headers: { Authorization: `Bearer ${token}` }
     });
-    alert(res.data.message);
+    window.location.href='./Home';
   };
+
+  
 
   return (
     <div style={{ padding: 24 }}>
@@ -35,7 +36,6 @@ export default function App() {
       <div>
         <button onClick={signup}>Sign Up</button>
         <button onClick={login}>Login</button>
-        <button onClick={testApi}>Test API</button>
       </div>
       {currentUser && (
         <div style={{ marginTop: '10px', color: 'green' }}>
