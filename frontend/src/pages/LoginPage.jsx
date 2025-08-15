@@ -34,11 +34,6 @@ export default function LoginPage() {
     <div style={{ padding: 24, maxWidth: 360, margin: '0 auto' }}>
       <h2>Login</h2>
       <AuthForm onSignup={signup} onLogin={login} />
-      {currentUser && (
-        <div style={{ marginTop: 10, color: 'green' }}>
-          ✅ Logged in as {currentUser.email}
-        </div>
-      )}
     </div>
   );
 }
