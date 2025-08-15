@@ -9,8 +9,6 @@ import {
 } from 'firebase/auth';
 import AuthForm from '../components/AuthForm.jsx';
 
-axios.defaults.baseURL = ''; // same-origin in prod
-
 export default function LoginPage() {
   const [currentUser, setCurrentUser] = useState(null);
   const navigate = useNavigate();
