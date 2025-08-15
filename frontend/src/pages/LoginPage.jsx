@@ -25,7 +25,7 @@ export default function LoginPage() {
     await signInWithEmailAndPassword(auth, email, password);
     const token = await auth.currentUser.getIdToken();
     await axios.post('/api/hello', {}, { headers: { Authorization: `Bearer ${token}` } });
-    navigate('/home'); // absolute + lowercase
+    navigate('/home');
   };
 
   return (
