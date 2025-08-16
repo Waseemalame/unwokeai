@@ -7,8 +7,9 @@ import PublicProfilePage from './pages/PublicProfilePage.jsx';
 import MyProfilePage from './pages/MyProfilePage.jsx';
 import UploadBeat from './components/UploadBeat.jsx';
 import CheckoutPage from './pages/CheckoutPage.jsx';
-import './styles/overlays.css';
 import Navbar from './components/Navbar.jsx';
+import LikedTracks from './pages/LikedTracks.jsx';
+import './styles/overlays.css';
 
 export default function App() {
   return (
@@ -23,6 +24,7 @@ export default function App() {
         <Route element={<ProtectedRoute />}>
           <Route path="/me" element={<MyProfilePage />} />
           <Route path="/upload" element={<UploadBeat />} />
+          <Route path="/likes" element={<LikedTracks />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />

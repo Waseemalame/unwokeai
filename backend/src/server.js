@@ -13,6 +13,7 @@ import usersRouter from './routes/users.js';
 import tracksRouter from './routes/tracks.js';
 import uploadsRouter from './routes/uploads.js';
 import checkoutRouter from './routes/checkout.js';
+import likesRouter from './routes/likes.js';
 import { notFound, errorHandler } from './middleware/error.js';
 
 dotenv.config();
@@ -49,6 +50,7 @@ app.use('/api', usersRouter);
 app.use('/api', tracksRouter);
 app.use('/api', uploadsRouter);
 app.use('/api', checkoutRouter);
+app.use('/api', likesRouter);
 
 // 5) static SPA
 app.use(express.static(path.join(__dirname, '../public')));

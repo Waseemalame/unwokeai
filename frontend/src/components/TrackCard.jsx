@@ -1,18 +1,44 @@
 import { useEffect, useRef, useState, useMemo } from 'react';
 import LicenseModal from './LicenseModal.jsx';
 import { useCart } from './cart/CartProvider.jsx';
+import { useAuth } from '../auth/AuthProvider.jsx';
 
 const DEFAULT_PRICE = 2999; // cents
 
 export default function TrackCard({ track, isPlaying, onPlay, onPause }) {
   const { add } = useCart();
+  const { getToken, user } = useAuth();
   const [open, setOpen] = useState(false);
+  const [liked, setLiked] = useState(false);
+  const [likesCount, setLikesCount] = useState(track.likesCount);
+
   const audioRef = useRef(null);
 
   const priceCents = useMemo(() => {
     const p = track?.pricing || {};
     return p.standard ?? p.mp3 ?? DEFAULT_PRICE;
   }, [track]);
+
+  const toggleLike = async () => {
+    try {
+      const token = await getToken();
+      if (!token){
+        // TODO: Prompt user to login/signup
+        console.warn('User not authenticated, cannot like track');
+        return;
+      }
+      const method = liked ? 'DELETE' : 'POST';
+      const res = await fetch(`/api/tracks/${track._id}/like`, {
+        method,
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await res.json();
+      setLiked(data.liked);
+      setLikesCount(data.likesCount);
+    } catch (error) {
+      console.error('Error liking track:', error);
+    }
+  };
 
   const onChoose = ({ license, priceCents }) => {
     add({
@@ -66,6 +92,13 @@ export default function TrackCard({ track, isPlaying, onPlay, onPause }) {
       </div>
 
       <div className="track-row__spacer" />
+
+      {/* Like Button */}
+      <div>
+        <button onClick={toggleLike}>
+          {liked ? '💖' : '🤍'} {likesCount}
+        </button>
+      </div>
 
       {/* Add Button */}
       <button className="btn-add" onClick={() => setOpen(true)}>ADD</button>

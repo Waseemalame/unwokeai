@@ -6,6 +6,7 @@ const AuthContext = createContext({
   user: null,
   loading: true,
   logout: async () => {},
+  getToken: async () => null,
 });
 
 export function AuthProvider({ children }) {
@@ -25,6 +26,13 @@ export function AuthProvider({ children }) {
     };
   }, []);
 
+  // Fresh ID token on demand
+  const getToken = async () => {
+    if (!auth.currentUser) return null;
+    // getIdToken(true) forces refresh; usually not needed, so keep it false.
+    return auth.currentUser.getIdToken(/* forceRefresh? = */ false);
+  };
+
   const logout = async () => {
     console.log('[AuthProvider] logout start');
     setLoading(true);
@@ -39,7 +47,7 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const value = useMemo(() => ({ user, loading, logout }), [user, loading]);
+  const value = useMemo(() => ({ user, loading, logout, getToken }), [user, loading]);
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
