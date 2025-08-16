@@ -7,6 +7,8 @@ const DEFAULT_PRICE = 2999; // cents
 export default function TrackCard({ track }) {
   const { add } = useCart();
   const [open, setOpen] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [audio] = useState(() => new Audio(track?.audioUrl));
 
   const priceCents = useMemo(() => {
     const p = track?.pricing || {};
@@ -23,13 +25,32 @@ export default function TrackCard({ track }) {
     setOpen(false);
   };
 
+  const togglePlay = () => {
+    if (!audio) return;
+
+    if (isPlaying) {
+      audio.pause();
+    } else {
+      audio.play();
+    }
+    setIsPlaying(!isPlaying);
+  };
+
   return (
     <div className="track-row">
-      <img
-        className="track-row__cover"
-        src={track.coverUrl || 'https://placehold.co/64x64?text=Cover'}
-        alt={track.title}
-      />
+      {/* Cover + Play/Pause Button */}
+      <div className="track-row__cover-wrapper">
+        <img
+          className="track-row__cover"
+          src={track.coverUrl || 'https://placehold.co/300x300?text=Cover'}
+          alt={track.title}
+        />
+        <button className="play-btn" onClick={togglePlay}>
+          {isPlaying ? '⏸' : '▶'}
+        </button>
+      </div>
+
+      {/* Metadata */}
       <div className="track-row__meta">
         <div className="track-row__title">{track.title}</div>
         <div className="track-row__sub">#{track.genre || 'Unknown'}</div>
@@ -37,8 +58,10 @@ export default function TrackCard({ track }) {
 
       <div className="track-row__spacer" />
 
+      {/* Add Button */}
       <button className="btn-add" onClick={() => setOpen(true)}>ADD</button>
 
+      {/* License Modal */}
       <LicenseModal
         open={open}
         track={{ ...track, pricing: track.pricing || { standard: priceCents } }}

@@ -195,3 +195,38 @@
     --shadow: 0 10px 30px rgba(14, 27, 66, .08);
   }
 }
+.track-row__cover-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.track-row__cover {
+  width: 150px;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.play-btn {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: #f59e0b; /* orange */
+  border: none;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  font-size: 20px;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.play-btn:hover {
+  background-color: #d97706;
+  transform: translate(-50%, -50%) scale(1.1);
+}
