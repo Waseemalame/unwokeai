@@ -2,10 +2,18 @@ import express from 'express';
 import cors from 'cors';
 import * as dotenv from 'dotenv';
 import admin from 'firebase-admin';
-import { MongoClient } from 'mongodb';
+import { MongoClient, ObjectId } from 'mongodb'; // ← NOTE: added ObjectId
 import path from 'path';
 import { fileURLToPath } from 'url';
 import verifyFirebaseToken from './middleware/authMiddleware.js';
+
+import crypto from 'crypto';
+import {
+  BlobSASPermissions,
+  SASProtocol,
+  StorageSharedKeyCredential,
+  generateBlobSASQueryParameters,
+} from '@azure/storage-blob';
 
 dotenv.config();
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -28,6 +36,15 @@ const mongo = new MongoClient(process.env.MONGODB_URI);
 await mongo.connect();
 const db = mongo.db(process.env.MONGODB_DB);
 
+await db.collection('users').createIndex({ firebaseUid: 1 }, { unique: true }).catch(() => {});
+
+const AZURE_STORAGE_ACCOUNT = process.env.AZURE_STORAGE_ACCOUNT;      // e.g. mystorageacct
+const AZURE_STORAGE_CONTAINER = process.env.AZURE_STORAGE_CONTAINER;  // e.g. audiofiles
+const AZURE_STORAGE_KEY = process.env.AZURE_STORAGE_KEY;              // account access key
+const sharedKey = (AZURE_STORAGE_ACCOUNT && AZURE_STORAGE_KEY)
+  ? new StorageSharedKeyCredential(AZURE_STORAGE_ACCOUNT, AZURE_STORAGE_KEY)
+  : null;
+
 app.get('/api/public', (_req, res) => res.json({ message: 'public' }));
 
 app.post('/api/hello', verifyFirebaseToken, async (req, res) => {
@@ -37,9 +54,7 @@ app.post('/api/hello', verifyFirebaseToken, async (req, res) => {
   const result = await users.findOneAndUpdate(
     { firebaseUid: uid },
     {
-      // keep mutable fields current
       $set: { email },
-      // write once on first insert
       $setOnInsert: { firebaseUid: uid, createdAt: new Date() },
     },
     { upsert: true, returnDocument: 'after' }
@@ -47,6 +62,53 @@ app.post('/api/hello', verifyFirebaseToken, async (req, res) => {
 
   res.set('Cache-Control', 'no-store');
   res.json({ message: `Hello from the backend, ${result.value?.email || email}` });
+});
+
+app.post('/api/uploads/azure/sas', verifyFirebaseToken, async (req, res) => {
+  try {
+    if (!sharedKey) return res.status(500).json({ message: 'Storage not configured' });
+
+    const { uid } = req.user;
+    const { contentType } = req.body; // 'audio/mpeg', 'audio/wav', 'audio/flac', etc.
+
+    const allowed = ['audio/mpeg', 'audio/wav', 'audio/flac', 'audio/x-flac'];
+    if (!allowed.includes(contentType)) {
+      return res.status(400).json({ message: 'Unsupported content type' });
+    }
+
+    const ext =
+      contentType.includes('wav') ? '.wav' :
+      contentType.includes('flac') ? '.flac' :
+      contentType.includes('mpeg') ? '.mp3' : '';
+
+    const blobName = `${uid}/${Date.now()}_${crypto.randomBytes(4).toString('hex')}${ext}`;
+
+    const startsOn = new Date();
+    const expiresOn = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+
+    const sas = generateBlobSASQueryParameters(
+      {
+        containerName: AZURE_STORAGE_CONTAINER,
+        blobName,
+        startsOn,
+        expiresOn,
+        permissions: BlobSASPermissions.parse('cw'),
+        protocol: SASProtocol.Https,
+      },
+      sharedKey
+    ).toString();
+
+    const baseUrl = `https://${AZURE_STORAGE_ACCOUNT}.blob.core.windows.net/${AZURE_STORAGE_CONTAINER}/${encodeURIComponent(blobName)}`;
+    const uploadUrl = `${baseUrl}?${sas}`;
+
+    res.json({
+      uploadUrl,
+      blobUrl: baseUrl,
+    });
+  } catch (e) {
+    console.error('/api/uploads/azure/sas error', e);
+    res.status(500).json({ message: 'Failed to create SAS' });
+  }
 });
 
 app.get('/api/tracks', async (req, res) => {
@@ -103,16 +165,59 @@ app.get('/api/users/:userId/tracks', async (req, res) => {
   });
 });
 
+app.post('/api/tracks', verifyFirebaseToken, async (req, res) => {
+  try {
+    const { uid, email } = req.user;
+    const { title, genre, tags, audioUrl, coverUrl } = req.body;
+
+    if (!audioUrl) return res.status(400).json({ message: 'audioUrl is required' });
+
+    const doc = {
+      ownerUid: uid,
+      ownerEmail: email,
+      title: (title || 'Untitled').trim(),
+      genre: genre?.trim() || null,
+      tags: Array.isArray(tags) ? tags.slice(0, 10) : [],
+      audioUrl,
+      coverUrl: coverUrl || null,
+      isPublished: false,
+      plays: 0,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const result = await db.collection('tracks').insertOne(doc);
+    res.status(201).json({ ...doc, _id: result.insertedId });
+  } catch (e) {
+    console.error('/api/tracks create error', e);
+    res.status(500).json({ message: 'Failed to create track' });
+  }
+});
+
 app.post('/api/tracks/:id/publish', verifyFirebaseToken, async (req, res) => {
   const { uid } = req.user;
-  const _id = new ObjectId(req.params.id);
-  const result = await db.collection('tracks').findOneAndUpdate(
-    { _id, ownerUid: uid },
-    { $set: { isPublished: true } },
+
+  let _id;
+  try {
+    _id = new ObjectId(req.params.id);
+  } catch {
+    return res.status(400).json({ message: 'Invalid track id' });
+  }
+
+  const track = await db.collection('tracks').findOne({ _id });
+  if (!track) return res.status(404).json({ message: 'Track not found' });
+
+  if (track.ownerUid !== uid) {
+    return res.status(403).json({ message: 'You do not own this track' });
+  }
+
+  const { value } = await db.collection('tracks').findOneAndUpdate(
+    { _id },
+    { $set: { isPublished: true, updatedAt: new Date() } },
     { returnDocument: 'after' }
   );
-  if (!result.value) return res.status(404).end();
-  res.json(result.value);
+
+  return res.json(value);
 });
 
 // Serve the SPA build

@@ -3,11 +3,14 @@ import './index.css';
 import { BrowserRouter } from 'react-router-dom';
 import App from './App.jsx';
 import { AuthProvider } from './auth/AuthProvider.jsx';
+import { CartProvider } from './components/cart/CartProvider.jsx';
 
 ReactDOM.createRoot(document.querySelector('#root')).render(
   <BrowserRouter>
     <AuthProvider>
-      <App />
+      <CartProvider>
+        <App />
+      </CartProvider>
     </AuthProvider>
   </BrowserRouter>
 );

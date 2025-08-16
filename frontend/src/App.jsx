@@ -6,6 +6,7 @@ import FeedPage from './pages/FeedPage.jsx';
 import PublicProfilePage from './pages/PublicProfilePage.jsx';
 import MyProfilePage from './pages/MyProfilePage.jsx';
 import Navbar from './components/NavBar.jsx';
+import UploadBeat from './components/UploadBeat.jsx';
 
 export default function App() {
   return (
@@ -18,6 +19,7 @@ export default function App() {
 
         <Route element={<ProtectedRoute />}>
           <Route path="/me" element={<MyProfilePage />} />
+          <Route path="/upload" element={<UploadBeat />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />
