@@ -1,11 +1,9 @@
 import { useEffect, useState } from 'react';
 import { auth } from '../firebase';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
-import { useNavigate } from 'react-router-dom';
 
 export default function HomePage() {
   const [userEmail, setUserEmail] = useState('');
-  const navigate = useNavigate();
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (user) => {
@@ -16,7 +14,6 @@ export default function HomePage() {
 
   const logout = async () => {
     await signOut(auth);
-    navigate('/');
   };
 
   return (

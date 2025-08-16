@@ -7,29 +7,38 @@ import {
   signInWithEmailAndPassword,
   onAuthStateChanged
 } from 'firebase/auth';
-import AuthForm from '../components/AuthForm.jsx';
+import AuthForm from '../auth/AuthForm';
+
 
 export default function LoginPage() {
   const [currentUser, setCurrentUser] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (user) => setCurrentUser(user));
+    const unsub = onAuthStateChanged(auth, async (user) => {
+      if (!user) return;
+
+      try {
+        const token = await user.getIdToken();
+        await axios.post('/api/hello', {}, { headers: { Authorization: `Bearer ${token}` } });
+      } catch {
+        // Todo: Handle error
+      }
+
+      navigate('/home');
+    });
+
     return unsub;
-  }, []);
+  }, [navigate]);
 
   const signup = (email, password) =>
     createUserWithEmailAndPassword(auth, email, password);
 
-  const login = async (email, password) => {
-    await signInWithEmailAndPassword(auth, email, password);
-    const token = await auth.currentUser.getIdToken();
-    await axios.post('/api/hello', {}, { headers: { Authorization: `Bearer ${token}` } });
-    navigate('/home');
-  };
+  const login = (email, password) =>
+    signInWithEmailAndPassword(auth, email, password);
 
   return (
-    <div style={{ padding: 24, maxWidth: 360, margin: '0 auto' }}>
+    <div>
       <h2>Login</h2>
       <AuthForm onSignup={signup} onLogin={login} />
     </div>

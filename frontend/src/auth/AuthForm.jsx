@@ -25,7 +25,7 @@ export default function AuthForm({ onSignup, onLogin }) {
         onChange={(e) => setPassword(e.target.value)}
         autoComplete="current-password"
       />
-      <div style={{ display: 'flex', gap: 8 }}>
+      <div>
         <button type="button" onClick={() => onSignup?.(email, password)}>
           Sign Up
         </button>
