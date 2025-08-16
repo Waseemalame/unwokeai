@@ -7,6 +7,8 @@ import PublicProfilePage from './pages/PublicProfilePage.jsx';
 import MyProfilePage from './pages/MyProfilePage.jsx';
 import Navbar from './components/NavBar.jsx';
 import UploadBeat from './components/UploadBeat.jsx';
+import CheckoutPage from './pages/CheckoutPage.jsx';
+import './styles/overlays.css';
 
 export default function App() {
   return (
@@ -16,6 +18,7 @@ export default function App() {
         <Route path="/" element={<FeedPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/u/:uid" element={<PublicProfilePage />} />
+        <Route path="/checkout" element={<CheckoutPage />} />
 
         <Route element={<ProtectedRoute />}>
           <Route path="/me" element={<MyProfilePage />} />

@@ -1,8 +1,9 @@
+// src/server.js
 import express from 'express';
 import cors from 'cors';
 import * as dotenv from 'dotenv';
 import admin from 'firebase-admin';
-import { MongoClient, ObjectId } from 'mongodb'; // ← NOTE: added ObjectId
+import { MongoClient, ObjectId } from 'mongodb';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import verifyFirebaseToken from './middleware/authMiddleware.js';
@@ -15,8 +16,12 @@ import {
   generateBlobSASQueryParameters,
 } from '@azure/storage-blob';
 
+import Stripe from 'stripe';
+
 dotenv.config();
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2024-06-20' });
 
 if (!admin.apps.length) {
   admin.initializeApp({
@@ -28,9 +33,61 @@ if (!admin.apps.length) {
   });
 }
 
-const app = express()
-  .use(cors({ origin: process.env.FRONTEND_URL || true }))
-  .use(express.json());
+const app = express();
+
+app.set('trust proxy', 1);
+
+app.use(cors({ origin: process.env.FRONTEND_URL || true }));
+
+app.post('/api/webhooks/stripe', express.raw({ type: 'application/json' }), async (req, res) => {
+  console.log('Stripe webhook received');
+  try {
+    const sig = req.headers['stripe-signature'];
+    let event;
+    if (process.env.STRIPE_WEBHOOK_SECRET) {
+      event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
+    } else {
+      event = JSON.parse(req.body);
+    }
+
+    switch (event.type) {
+      case 'checkout.session.completed': {
+        const session = event.data.object;
+        // const lineItems = await stripe.checkout.sessions.listLineItems(session.id, { limit: 100 });
+
+        await db.collection('orders').insertOne({
+          stripeSessionId: session.id,
+          amountTotal: session.amount_total,
+          currency: session.currency,
+          customerEmail: session.customer_details?.email || session.customer_email || null,
+          paymentStatus: session.payment_status,
+          clientReferenceId: session.client_reference_id || null,
+          createdAt: new Date(),
+          metadata: session.metadata || {},
+        });
+        break;
+      }
+      default:
+        // TODO: handle other events
+        break;
+    }
+
+    res.json({ received: true });
+  } catch (err) {
+    console.error('Stripe webhook error', err);
+    res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+});
+
+app.use(express.json());
+
+function getBaseUrl(req) {
+  const fromEnv = process.env.APP_BASE_URL;
+  if (fromEnv) return fromEnv.replace(/\/+$/, '');
+  const proto = req.headers['x-forwarded-proto'] || req.protocol;
+  const host = req.headers['x-forwarded-host'] || req.headers.host;
+  return `${proto}://${host}`;
+}
 
 const mongo = new MongoClient(process.env.MONGODB_URI);
 await mongo.connect();
@@ -38,12 +95,13 @@ const db = mongo.db(process.env.MONGODB_DB);
 
 await db.collection('users').createIndex({ firebaseUid: 1 }, { unique: true }).catch(() => {});
 
-const AZURE_STORAGE_ACCOUNT = process.env.AZURE_STORAGE_ACCOUNT;      // e.g. mystorageacct
-const AZURE_STORAGE_CONTAINER = process.env.AZURE_STORAGE_CONTAINER;  // e.g. audiofiles
-const AZURE_STORAGE_KEY = process.env.AZURE_STORAGE_KEY;              // account access key
-const sharedKey = (AZURE_STORAGE_ACCOUNT && AZURE_STORAGE_KEY)
-  ? new StorageSharedKeyCredential(AZURE_STORAGE_ACCOUNT, AZURE_STORAGE_KEY)
-  : null;
+const AZURE_STORAGE_ACCOUNT = process.env.AZURE_STORAGE_ACCOUNT;
+const AZURE_STORAGE_CONTAINER = process.env.AZURE_STORAGE_CONTAINER;
+const AZURE_STORAGE_KEY = process.env.AZURE_STORAGE_KEY;
+const sharedKey =
+  AZURE_STORAGE_ACCOUNT && AZURE_STORAGE_KEY
+    ? new StorageSharedKeyCredential(AZURE_STORAGE_ACCOUNT, AZURE_STORAGE_KEY)
+    : null;
 
 app.get('/api/public', (_req, res) => res.json({ message: 'public' }));
 
@@ -69,7 +127,7 @@ app.post('/api/uploads/azure/sas', verifyFirebaseToken, async (req, res) => {
     if (!sharedKey) return res.status(500).json({ message: 'Storage not configured' });
 
     const { uid } = req.user;
-    const { contentType } = req.body; // 'audio/mpeg', 'audio/wav', 'audio/flac', etc.
+    const { contentType } = req.body; // 'audio/mpeg', 'audio/wav', etc.
 
     const allowed = ['audio/mpeg', 'audio/wav', 'audio/flac', 'audio/x-flac'];
     if (!allowed.includes(contentType)) {
@@ -84,7 +142,7 @@ app.post('/api/uploads/azure/sas', verifyFirebaseToken, async (req, res) => {
     const blobName = `${uid}/${Date.now()}_${crypto.randomBytes(4).toString('hex')}${ext}`;
 
     const startsOn = new Date();
-    const expiresOn = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+    const expiresOn = new Date(Date.now() + 15 * 60 * 1000);
 
     const sas = generateBlobSASQueryParameters(
       {
@@ -101,10 +159,7 @@ app.post('/api/uploads/azure/sas', verifyFirebaseToken, async (req, res) => {
     const baseUrl = `https://${AZURE_STORAGE_ACCOUNT}.blob.core.windows.net/${AZURE_STORAGE_CONTAINER}/${encodeURIComponent(blobName)}`;
     const uploadUrl = `${baseUrl}?${sas}`;
 
-    res.json({
-      uploadUrl,
-      blobUrl: baseUrl,
-    });
+    res.json({ uploadUrl, blobUrl: baseUrl });
   } catch (e) {
     console.error('/api/uploads/azure/sas error', e);
     res.status(500).json({ message: 'Failed to create SAS' });
@@ -130,7 +185,7 @@ app.get('/api/tracks', async (req, res) => {
 
     res.json({
       items,
-      nextCursor: items.at(-1)?.createdAt?.toISOString() ?? null
+      nextCursor: items.at(-1)?.createdAt?.toISOString() ?? null,
     });
   } catch (err) {
     console.error('/api/tracks error', err);
@@ -147,7 +202,6 @@ app.get('/api/users/:userId/profile', async (req, res) => {
   res.json(user);
 });
 
-// User's published tracks
 app.get('/api/users/:userId/tracks', async (req, res) => {
   const { limit = 24, cursor } = req.query;
   const query = { ownerUid: req.params.userId, isPublished: true };
@@ -161,7 +215,7 @@ app.get('/api/users/:userId/tracks', async (req, res) => {
 
   res.json({
     items,
-    nextCursor: items.at(-1)?.createdAt?.toISOString() ?? null
+    nextCursor: items.at(-1)?.createdAt?.toISOString() ?? null,
   });
 });
 
@@ -218,6 +272,81 @@ app.post('/api/tracks/:id/publish', verifyFirebaseToken, async (req, res) => {
   );
 
   return res.json(value);
+});
+
+function priceFor(track, license) {
+  const key = (license || 'mp3').toLowerCase();
+  if (track?.pricing && typeof track.pricing === 'object') {
+    const v = track.pricing[key];
+    if (Number.isFinite(v) && v > 0) return Math.trunc(v);
+  }
+  if (key === 'wav') return 2999;
+  if (key === 'stems' || key === 'premium_wav_stems' || key === 'unlimited_stems') return 4999;
+  if (key === 'unlimited') return 3999;
+  return 1999; // mp3 default
+}
+
+app.post('/api/checkout/sessions', verifyFirebaseToken, async (req, res) => {
+  try {
+    const { uid, email } = req.user;
+    const { items } = req.body; // [{ trackId, license }]
+
+    if (!Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ message: 'No items' });
+    }
+
+    const ids = items
+      .map(i => {
+        try { return new ObjectId(String(i.trackId)); } catch { return null; }
+      })
+      .filter(Boolean);
+
+    const tracks = await db.collection('tracks').find({ _id: { $in: ids } }).toArray();
+    const byId = new Map(tracks.map(t => [String(t._id), t]));
+
+    const line_items = items.map(i => {
+      const t = byId.get(String(i.trackId));
+      if (!t) throw new Error(`Track not found: ${i.trackId}`);
+      const unit_amount = priceFor(t, i.license);
+
+      return {
+        quantity: 1,
+        price_data: {
+          currency: 'usd',
+          unit_amount,
+          product_data: {
+            name: `${t.title} — ${(i.license || 'mp3').toUpperCase()}`,
+            images: t.coverUrl ? [t.coverUrl] : undefined,
+            metadata: {
+              trackId: String(t._id),
+              ownerUid: t.ownerUid || '',
+              license: String(i.license || 'mp3'),
+            },
+          },
+        },
+      };
+    });
+
+    const base = getBaseUrl(req);
+    const session = await stripe.checkout.sessions.create({
+      mode: 'payment',
+      payment_method_types: ['card'],
+      customer_email: email,
+      client_reference_id: uid,
+      line_items,
+      allow_promotion_codes: true,
+      success_url: `${base}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${base}/checkout/cancel`,
+      payment_intent_data: {
+        metadata: { userUid: uid },
+      },
+    });
+
+    res.json({ url: session.url });
+  } catch (err) {
+    console.error('/api/checkout/sessions error', err);
+    res.status(500).json({ message: 'Failed to create checkout session' });
+  }
 });
 
 // Serve the SPA build

@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider.jsx';
+import { useCart } from './cart/CartProvider.jsx';
+import CartPopover from './CartPopover.jsx';
 import '../styles/nav.css';
 
 function CartIcon() {
@@ -22,8 +24,17 @@ function GridIcon() {
 export default function Navbar() {
   const navigate = useNavigate();
   const { user, loading, logout } = useAuth();
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const { items } = useCart();
 
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [cartOpen, setCartOpen] = useState(false);
+
+  const onCheckout = () => {
+    setCartOpen(false);
+    navigate('/checkout');
+  };
+
+  const count = items.length;
   const initials =
     user?.displayName?.split(' ').map(p => p[0]).join('').slice(0, 2).toUpperCase() ||
     (user?.email ? user.email[0].toUpperCase() : 'U');
@@ -36,8 +47,13 @@ export default function Navbar() {
   return (
     <header className="site-nav">
       <div className="site-nav__top">
+        {/* LEFT SECTION */}
         <div className="site-nav__left">
-          <button className="icon-btn mobile-only" aria-label="Menu" onClick={() => setMobileOpen(v => !v)}>
+          <button 
+            className="icon-btn mobile-only" 
+            aria-label="Menu" 
+            onClick={() => setMobileOpen(v => !v)}
+          >
             <span className="hamburger" />
           </button>
           <Link to="/" className="brand">
@@ -54,6 +70,7 @@ export default function Navbar() {
           </nav>
         </div>
 
+        {/* CENTER SECTION */}
         <div className="site-nav__center">
           <div className="search">
             <span className="search__icon">⌕</span>
@@ -62,12 +79,33 @@ export default function Navbar() {
           </div>
         </div>
 
+        {/* RIGHT SECTION */}
         <div className="site-nav__right">
-          <Link to="/cart" className="icon-btn badge-wrap" aria-label="Cart">
-            <CartIcon /><span className="badge">0</span>
-          </Link>
+          {/* CART BUTTON + POPOVER WRAP */}
+          <div className="cart-wrap" style={{ position: 'relative' }}>
+            <button
+              type="button"
+              className="icon-btn badge-wrap"
+              aria-label="Cart"
+              onClick={() => setCartOpen(true)}
+            >
+              <CartIcon />
+              {count > 0 && <span className="badge">{count}</span>}
+            </button>
+
+            {/* CART POPOVER */}
+            <CartPopover
+              open={cartOpen}
+              onClose={() => setCartOpen(false)}
+              onCheckout={onCheckout}
+            />
+          </div>
+
+          {/* AUTH */}
           {loading ? (
-            <div className="auth-actions"><span className="link" style={{ opacity: .7 }}>Loading…</span></div>
+            <div className="auth-actions">
+              <span className="link" style={{ opacity: .7 }}>Loading…</span>
+            </div>
           ) : !user ? (
             <div className="auth-actions">
               <Link to="/login" className="link">Sign up</Link><span className="sep">|</span>
@@ -76,13 +114,20 @@ export default function Navbar() {
             </div>
           ) : (
             <div className="user-menu">
-              <button className="avatar" onClick={() => navigate('/me')} title={user.displayName || user.email}>{initials}</button>
+              <button 
+                className="avatar" 
+                onClick={() => navigate('/me')} 
+                title={user.displayName || user.email}
+              >
+                {initials}
+              </button>
               <button className="ghost" onClick={onLogout}>Sign out</button>
             </div>
           )}
         </div>
       </div>
 
+      {/* SUB NAV */}
       <div className="site-nav__sub desktop-only">
         <Link to="/tracks">Tracks</Link>
         <Link to="/collections">Collections</Link>
@@ -91,6 +136,7 @@ export default function Navbar() {
         <Link to="/models">AI Models</Link>
       </div>
 
+      {/* MOBILE PANEL */}
       {mobileOpen && (
         <div className="mobile-panel">
           <nav className="mobile-links">
