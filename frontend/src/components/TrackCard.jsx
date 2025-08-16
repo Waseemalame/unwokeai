@@ -1,14 +1,13 @@
-import React, { useMemo, useState } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
 import LicenseModal from './LicenseModal.jsx';
 import { useCart } from './cart/CartProvider.jsx';
 
 const DEFAULT_PRICE = 2999; // cents
 
-export default function TrackCard({ track }) {
+export default function TrackCard({ track, isPlaying, onPlay, onPause }) {
   const { add } = useCart();
   const [open, setOpen] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [audio] = useState(() => new Audio(track?.audioUrl));
+  const audioRef = useRef(null);
 
   const priceCents = useMemo(() => {
     const p = track?.pricing || {};
@@ -25,15 +24,24 @@ export default function TrackCard({ track }) {
     setOpen(false);
   };
 
-  const togglePlay = () => {
-    if (!audio) return;
+  // Sync audio with parent’s isPlaying flag
+  useEffect(() => {
+    if (!audioRef.current) return;
 
     if (isPlaying) {
-      audio.pause();
+      audioRef.current.play();
     } else {
-      audio.play();
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
     }
-    setIsPlaying(!isPlaying);
+  }, [isPlaying]);
+
+  const togglePlay = () => {
+    if (isPlaying) {
+      onPause();
+    } else {
+      onPlay();
+    }
   };
 
   return (
@@ -48,6 +56,7 @@ export default function TrackCard({ track }) {
         <button className="play-btn" onClick={togglePlay}>
           {isPlaying ? '⏸' : '▶'}
         </button>
+        <audio ref={audioRef} src={track.audioUrl}></audio>
       </div>
 
       {/* Metadata */}
