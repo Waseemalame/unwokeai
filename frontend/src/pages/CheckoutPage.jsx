@@ -1,28 +1,69 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { loadStripe } from '@stripe/stripe-js';
+import { useAuth } from '../auth/AuthProvider.jsx';
 import { useCart } from '../components/cart/CartProvider.jsx';
 import '../styles/checkout.css';
+
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
 const fmt = (cents) =>
   (cents / 100).toLocaleString(undefined, { style: 'currency', currency: 'USD' });
 
 export default function CheckoutPage() {
-  const { items, totalCents, remove, clear } = useCart();
+  const { items, totalCents, remove } = useCart();
+  const { user, loading } = useAuth();
   const navigate = useNavigate();
 
-  const groups = useMemo(() => {
-    // later you can group by seller/owner; for now single group
-    return [{ sellerName: items.length ? (items[0].sellerName || 'Cart') : 'Cart', items }];
-  }, [items]);
+  const groups = useMemo(
+    () => [{ sellerName: items.length ? (items[0].sellerName || 'Cart') : 'Cart', items }],
+    [items]
+  );
 
   const onRemove = (i) => remove(i.trackId, i.license);
 
-  const onContinueToPayment = async () => {
-    // TODO: Hook to your backend, create Stripe Checkout Session
-    // const session = await fetch('/api/checkout', { method: 'POST', body: JSON.stringify({ items })}).then(r=>r.json());
-    // window.location = session.url;
-    console.log('Checkout with:', items);
-  };
+  const onContinueToPayment = useCallback(async () => {
+    if (!items.length) return;
+
+    try {
+      const stripe = await stripePromise;
+      if (!stripe) throw new Error('Stripe failed to load');
+
+      if (!user) {
+        navigate('/login');
+        throw new Error('Must be signed in to checkout');
+      }
+      const token = await user.getIdToken(true);
+
+      const res = await fetch('/api/checkout/sessions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          items: items.map(i => ({
+            trackId: i.trackId,
+            license: i.license || 'mp3',
+          })),
+        }),
+      });
+
+      if (res.status === 401) {
+        navigate('/login');
+        throw new Error('Unauthorized');
+      }
+      if (!res.ok) throw new Error(await res.text());
+
+      const data = await res.json();
+      if (data.url) window.location.href = data.url;
+      else if (data.id) await stripe.redirectToCheckout({ sessionId: data.id });
+      else throw new Error('No session url/id returned');
+    } catch (err) {
+      console.error('Checkout error', err);
+      alert('Create session failed: ' + err.message);
+    }
+  }, [items, user, navigate]);
 
   if (!items.length) {
     return (
@@ -47,7 +88,7 @@ export default function CheckoutPage() {
               <div className="co-avatar" aria-hidden />
               <div>
                 <div className="co-seller-name">{g.sellerName}</div>
-                <div className="co-seller-sub">{g.items.length} item{g.items.length>1?'s':''}</div>
+                <div className="co-seller-sub">{g.items.length} item{g.items.length > 1 ? 's' : ''}</div>
               </div>
             </div>
 
@@ -81,7 +122,7 @@ export default function CheckoutPage() {
           <strong>{fmt(totalCents)}</strong>
         </div>
 
-        <button className="co-cta" onClick={onContinueToPayment}>
+        <button className="co-cta" disabled={loading || !user} onClick={onContinueToPayment}>
           🛒  CONTINUE TO PAYMENT
         </button>
 
