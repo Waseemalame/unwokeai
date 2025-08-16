@@ -1,0 +1,197 @@
+.feed {
+  /* Local theme vars so we don't stomp your app */
+  --bg-1: #0b0f17;
+  --bg-2: #0a0d13;
+  --surface: #111824;
+  --card: #0f1722;
+  --border: #1c2a3c;
+  --text: #e9eef6;
+  --muted: #98a6b8;
+  --brand: #7c5cff;
+  --brand-2: #16d1d8;
+  --radius: 16px;
+  --shadow: 0 10px 30px rgba(0,0,0,.35);
+
+  min-height: 100dvh;
+  padding: clamp(16px, 2vw, 32px);
+  color: var(--text);
+  background:
+    radial-gradient(1200px 600px at 10% -10%, rgba(124,92,255,.15), transparent 60%),
+    radial-gradient(1000px 500px at 110% 0%, rgba(22,209,216,.18), transparent 65%),
+    linear-gradient(180deg, var(--bg-1), var(--bg-2));
+}
+
+/* Title with animated gradient text */
+.feed__title {
+  font-size: clamp(24px, 3vw, 34px);
+  font-weight: 800;
+  letter-spacing: .2px;
+  margin: 0 0 12px;
+  background: linear-gradient(90deg, var(--text), #c8d4e6 40%, #c8d4e6);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Search input */
+.feed__search {
+  width: min(100%, 560px);
+  border: 1px solid var(--border);
+  background: color-mix(in oklab, var(--surface) 85%, black 15%);
+  color: var(--text);
+  border-radius: 14px;
+  padding: 12px 14px;
+  outline: none;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.02);
+  transition: box-shadow .2s ease, border-color .2s ease, transform .08s ease;
+}
+.feed__search::placeholder { color: color-mix(in oklab, var(--muted), white 10%); }
+.feed__search:focus {
+  border-color: color-mix(in oklab, var(--brand), white 15%);
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--brand) 30%, transparent);
+  transform: translateY(-1px);
+}
+
+/* Grid */
+.feed__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 18px;
+  margin-top: 16px;
+}
+
+/* Load more */
+.btn {
+  --btn-bg: linear-gradient(180deg, #1b2433, #141b27);
+  --btn-border: color-mix(in oklab, var(--border), white 10%);
+  --btn-ring: color-mix(in oklab, var(--brand) 35%, transparent);
+
+  appearance: none;
+  border: 1px solid var(--btn-border);
+  border-radius: 12px;
+  padding: 10px 16px;
+  background: var(--btn-bg);
+  color: var(--text);
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform .12s ease, box-shadow .2s ease, border-color .2s ease, background .2s ease;
+}
+.btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(0,0,0,.35);
+  border-color: color-mix(in oklab, var(--brand), white 20%);
+}
+.btn:active { transform: translateY(0); }
+.btn:focus-visible { outline: none; box-shadow: 0 0 0 4px var(--btn-ring); }
+
+.btn--load {
+  background:
+    radial-gradient(120% 120% at 10% 10%, rgba(124,92,255,.25), transparent 40%),
+    radial-gradient(120% 120% at 90% 0%, rgba(22,209,216,.2), transparent 45%),
+    var(--btn-bg);
+}
+.btn[disabled] {
+  opacity: .6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ========= Track Card ========= */
+.track-card {
+  position: relative;
+  background: linear-gradient(180deg, color-mix(in oklab, var(--card) 92%, black 8%), #0b1220);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  transition: transform .15s ease, box-shadow .25s ease, border-color .2s ease;
+  will-change: transform;
+}
+
+/* Fancy animated border on hover (performance-friendly) */
+.track-card::before {
+  content: "";
+  position: absolute; inset: -1px;
+  border-radius: calc(var(--radius) + 1px);
+  padding: 1px;
+  background:
+    conic-gradient(from 180deg,
+      color-mix(in oklab, var(--brand), white 10%),
+      color-mix(in oklab, var(--brand-2), white 10%),
+      color-mix(in oklab, var(--brand), white 10%));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude;
+  opacity: 0;
+  transition: opacity .25s ease, filter .25s ease;
+  filter: blur(8px) saturate(1.2);
+  pointer-events: none;
+}
+.track-card:hover::before { opacity: .8; }
+
+.track-card:hover {
+  transform: translateY(-3px);
+  border-color: color-mix(in oklab, var(--brand), white 15%);
+  box-shadow: 0 20px 50px rgba(0,0,0,.45);
+}
+
+/* Cover */
+.track-card__cover {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: 12px;
+  margin-bottom: 10px;
+  display: block;
+  background: #0a0f18;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.03);
+  transition: transform .3s ease, filter .25s ease;
+}
+.track-card:hover .track-card__cover {
+  transform: scale(1.02);
+  filter: saturate(1.05) contrast(1.02);
+}
+
+/* Text */
+.track-card__title {
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 4px 0 6px;
+  font-size: 15px;
+  color: #eef3fb;
+}
+.track-card__meta {
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+
+/* Audio */
+.track-card__audio {
+  width: 100%;
+  accent-color: var(--brand);
+  filter: drop-shadow(0 2px 8px rgba(0,0,0,.4));
+}
+
+/* ========= Little niceties ========= */
+@media (prefers-reduced-motion: reduce) {
+  .track-card,
+  .track-card::before,
+  .track-card__cover,
+  .btn,
+  .feed__search { transition: none !important; }
+}
+
+@media (max-width: 520px) {
+  .feed__grid { gap: 14px; }
+}
+
+/* Optional light mode (keeps vibe but brighter) */
+@media (prefers-color-scheme: light) {
+  .feed {
+    --bg-1: #f6f8fc; --bg-2: #eef3fb;
+    --surface: #ffffff; --card: #ffffff;
+    --border: #dbe3ef; --text: #0b1220; --muted: #5a6a80;
+    --shadow: 0 10px 30px rgba(14, 27, 66, .08);
+  }
+}

@@ -1,15 +1,27 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import LoginPage from './pages/LoginPage.jsx';
 import HomePage from './pages/HomePage.jsx';
 import ProtectedRoute from './auth/ProtectedRoute.jsx';
+import FeedPage from './pages/FeedPage.jsx';
+import PublicProfilePage from './pages/PublicProfilePage.jsx';
+import MyProfilePage from './pages/MyProfilePage.jsx';
+import Navbar from './components/NavBar.jsx';
 
 export default function App() {
   return (
-    <Routes>
-      <Route path="/" element={<LoginPage />} />
-      <Route element={<ProtectedRoute />}>
-        <Route path="/home" element={<HomePage />} />
-      </Route>
-    </Routes>
+    <>
+      <Navbar />
+      <Routes>
+        <Route path="/" element={<FeedPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/u/:uid" element={<PublicProfilePage />} />
+
+        <Route element={<ProtectedRoute />}>
+          <Route path="/me" element={<MyProfilePage />} />
+        </Route>
+
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </>
   );
 }

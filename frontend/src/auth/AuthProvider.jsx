@@ -1,26 +1,46 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { auth } from '../firebase';
-import { onIdTokenChanged } from 'firebase/auth';
+import { onIdTokenChanged, signOut } from 'firebase/auth';
 
-const AuthContext = createContext({ user: null, loading: true });
+const AuthContext = createContext({
+  user: null,
+  loading: true,
+  logout: async () => {},
+});
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsub = onIdTokenChanged(auth, (user) => {
-      setUser(user);
+    console.log('[AuthProvider] mounting token listener');
+    const unsub = onIdTokenChanged(auth, async (u) => {
+      console.log('[AuthProvider] onIdTokenChanged fired. user:', !!u, u?.email);
+      setUser(u);
       setLoading(false);
     });
-    return unsub;
+    return () => {
+      console.log('[AuthProvider] unmounting token listener');
+      unsub();
+    };
   }, []);
 
-  return (
-    <AuthContext.Provider value={{ user, loading }}>
-      {children}
-    </AuthContext.Provider>
-  );
+  const logout = async () => {
+    console.log('[AuthProvider] logout start');
+    setLoading(true);
+    try {
+      await signOut(auth);
+      console.log('[AuthProvider] logout success');
+    } catch (e) {
+      console.error('[AuthProvider] logout error', e);
+    } finally {
+      setUser(null);
+      setLoading(false);
+    }
+  };
+
+  const value = useMemo(() => ({ user, loading, logout }), [user, loading]);
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {
