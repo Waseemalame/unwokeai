@@ -5,10 +5,10 @@ import ProtectedRoute from './auth/ProtectedRoute.jsx';
 import FeedPage from './pages/FeedPage.jsx';
 import PublicProfilePage from './pages/PublicProfilePage.jsx';
 import MyProfilePage from './pages/MyProfilePage.jsx';
-import Navbar from './components/NavBar.jsx';
 import UploadBeat from './components/UploadBeat.jsx';
 import CheckoutPage from './pages/CheckoutPage.jsx';
 import './styles/overlays.css';
+import Navbar from './components/NavBar.jsx';
 
 export default function App() {
   return (
