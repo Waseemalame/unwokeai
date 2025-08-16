@@ -28,3 +28,4 @@ Thumbs.db
 # Secret files (Firebase Admin key if used as a file later)
 *.secret.json
 backend/firebase.secret.json
+documentation.md
