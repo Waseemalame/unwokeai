@@ -3,6 +3,7 @@ import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider.jsx';
 import { useCart } from './cart/CartProvider.jsx';
 import CartPopover from './CartPopover.jsx';
+import MessagesButton from './MessagesButton.jsx';
 import '../styles/nav.css';
 
 function CartIcon() {
@@ -100,7 +101,7 @@ export default function Navbar() {
               onCheckout={onCheckout}
             />
           </div>
-
+          <MessagesButton className="ghost" />
           {/* AUTH */}
           {loading ? (
             <div className="auth-actions">
@@ -146,6 +147,7 @@ export default function Navbar() {
             <NavLink to="/kits" onClick={() => setMobileOpen(false)}>Sound Kits</NavLink>
             <NavLink to="/musicians" onClick={() => setMobileOpen(false)}>Musicians</NavLink>
             <NavLink to="/models" onClick={() => setMobileOpen(false)}>AI Models</NavLink>
+            <NavLink to="/messages" onClick={() => setMobileOpen(false)}>Messages</NavLink>
           </nav>
           <div className="mobile-auth">
             {!user ? (

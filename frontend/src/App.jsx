@@ -10,6 +10,7 @@ import CheckoutPage from './pages/CheckoutPage.jsx';
 import Navbar from './components/Navbar.jsx';
 import LikedTracks from './pages/LikedTracks.jsx';
 import './styles/overlays.css';
+import Messages from './pages/Messages.jsx';
 
 export default function App() {
   return (
@@ -18,13 +19,15 @@ export default function App() {
       <Routes>
         <Route path="/" element={<FeedPage />} />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/u/:uid" element={<PublicProfilePage />} />
+        <Route path="/users/:uid" element={<PublicProfilePage />} />
+        <Route path="/@:handle" element={<PublicProfilePage />} />
         <Route path="/checkout" element={<CheckoutPage />} />
 
         <Route element={<ProtectedRoute />}>
           <Route path="/me" element={<MyProfilePage />} />
           <Route path="/upload" element={<UploadBeat />} />
           <Route path="/likes" element={<LikedTracks />} />
+          <Route path="/messages" element={<Messages />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />

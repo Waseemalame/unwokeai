@@ -1,5 +1,6 @@
 // src/server.js
 import express from 'express';
+import { createServer } from 'http';
 import cors from 'cors';
 import * as dotenv from 'dotenv';
 import path from 'path';
@@ -14,12 +15,15 @@ import tracksRouter from './routes/tracks.js';
 import uploadsRouter from './routes/uploads.js';
 import checkoutRouter from './routes/checkout.js';
 import likesRouter from './routes/likes.js';
+import messagesRouter from './routes/messages.js';
 import { notFound, errorHandler } from './middleware/error.js';
+import { attachSocket } from './realtime/socket.js';
 
 dotenv.config();
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
+const httpServer = createServer(app);
 
 // init firebase admin
 if (!admin.apps.length) {
@@ -51,6 +55,7 @@ app.use('/api', tracksRouter);
 app.use('/api', uploadsRouter);
 app.use('/api', checkoutRouter);
 app.use('/api', likesRouter);
+app.use('/api', messagesRouter);
 
 // 5) static SPA
 app.use(express.static(path.join(__dirname, '../public')));
@@ -64,4 +69,5 @@ app.use(notFound);
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log('Server running on', PORT));
+await attachSocket(httpServer);
+httpServer.listen(PORT, () => console.log('Server running on', PORT));

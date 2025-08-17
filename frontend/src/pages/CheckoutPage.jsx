@@ -95,7 +95,7 @@ export default function CheckoutPage() {
             <ul className="co-list">
               {g.items.map((it, idx) => (
                 <li key={`${it.trackId}:${it.license}:${idx}`} className="co-item">
-                  <img className="co-thumb" src={it.coverUrl || 'https://placehold.co/56x56?text=♪'} alt="" />
+                  <img className="co-thumb" src={it.coverUrl || 'https://i.imgur.com/Yacxo8R.jpeg'} alt="" />
                   <div className="co-item-text">
                     <div className="co-item-title">{it.title}</div>
                     <div className="co-item-meta">License: {it.license?.toUpperCase?.() || 'STANDARD'}</div>

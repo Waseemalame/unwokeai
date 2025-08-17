@@ -2,6 +2,8 @@ import { useEffect, useRef, useState, useMemo } from 'react';
 import LicenseModal from './LicenseModal.jsx';
 import { useCart } from './cart/CartProvider.jsx';
 import { useAuth } from '../auth/AuthProvider.jsx';
+import { Link } from 'react-router-dom';
+
 
 const DEFAULT_PRICE = 2999; // cents
 
@@ -88,7 +90,26 @@ export default function TrackCard({ track, isPlaying, onPlay, onPause }) {
       {/* Metadata */}
       <div className="track-row__meta">
         <div className="track-row__title">{track.title}</div>
-        <div className="track-row__sub">#{track.genre || 'Unknown'}</div>
+        <div className="track-row__sub">
+          #{track.genre || 'Unknown'}
+          {track.ownerUid && (
+            <Link
+              to={track.owner?.handle ? `/@${track.owner.handle}` : `/users/${track.ownerUid}`}
+              className="profile-icon"
+              title="View producer profile"
+            >
+              {track.owner?.avatarUrl ? (
+                <img
+                  src={track.owner.avatarUrl}
+                  alt="profile"
+                  className="profile-img"
+                />
+              ) : (
+                <span className="profile-placeholder">👤</span>
+              )}
+            </Link>
+          )}
+        </div>
       </div>
 
       <div className="track-row__spacer" />

@@ -17,7 +17,7 @@ export default function MyProfilePage() {
       <h2>My Profile</h2>
       <div style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 12 }}>
         <img
-          src={profile?.avatarUrl || 'https://placehold.co/80x80?text=U'}
+          src={profile?.avatarUrl || 'https://i.imgur.com/Yacxo8R.jpeg'}
           width={64}
           height={64}
           style={{ borderRadius: '50%' }}
