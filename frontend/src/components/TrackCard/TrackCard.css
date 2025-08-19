@@ -1,0 +1,123 @@
+.track-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 14px;
+  color: var(--text);
+  transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
+}
+
+.track-row:hover {
+  background: #eef4ff; /* soft blue tint */
+  border-color: var(--accent);
+  box-shadow: 0 3px 10px rgba(58, 102, 247, 0.12);
+}
+
+/* Cover + play button */
+.track-row__cover-wrapper {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.track-row__cover {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 8px;
+  background: #dbe3f5; /* bluish placeholder instead of dark gray */
+}
+
+.play-btn {
+  position: absolute;
+  bottom: 6px;
+  right: 6px;
+  background: rgba(58, 102, 247, 0.85); /* accent blue overlay */
+  border: none;
+  color: white;
+  border-radius: 50%;
+  width: 26px;
+  height: 26px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.play-btn:hover {
+  background: rgba(48, 85, 214, 0.95);
+}
+
+/* Metadata (title + genre + owner) */
+.track-row__meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.track-row__title {
+  font-weight: 600;
+  font-size: 15px;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.track-row__sub {
+  font-size: 13px;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Profile inside meta */
+.profile-icon {
+  display: inline-flex;
+  align-items: center;
+}
+.profile-img {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+}
+.profile-placeholder {
+  font-size: 14px;
+}
+
+/* Spacer pushes actions right */
+.track-row__spacer {
+  flex: 1;
+}
+
+/* Like button */
+.track-row button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text);
+  font-size: 14px;
+  transition: color 0.2s;
+}
+.track-row button:hover {
+  color: var(--accent);
+}
+
+/* Add button */
+.btn-add {
+  margin-left: 10px;
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s;
+}
+.btn-add:hover {
+  background: #3055d6;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}

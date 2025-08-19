@@ -1,10 +1,10 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import TrackCard from '../components/TrackCard.jsx';
 import { useUserTracks } from '../hooks/UseUserTracksFeed.js';
 import { useUserProfile } from '../hooks/useUserProfile.js';
 import { useAuth } from '../auth/AuthProvider.jsx';
 import { useChatDock } from '../components/ChatDock.jsx';
+import TrackCard from '../components/TrackCard/TrackCard.jsx';
 
 export default function PublicProfilePage() {
   const { uid, handle } = useParams();

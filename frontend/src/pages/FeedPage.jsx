@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import TrackCard from '../components/TrackCard.jsx';
+import TrackCard from '../components/TrackCard/TrackCard.jsx';
 import { useTracksFeed } from '../hooks/UseTracksFeed.js';
 
-import '../styles/feed.css'; // Import feed styles
+// import '../styles/feed.css'; // Import feed styles
 
 export default function FeedPage() {
   const [searchQuery, setSearchQuery] = useState('');

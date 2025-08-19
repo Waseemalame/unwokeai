@@ -1,8 +1,8 @@
 import React from 'react';
 import { useAuth } from '../auth/AuthProvider.jsx';
 import { useUserProfile } from '../hooks/useUserProfile.js';
-import TrackCard from '../components/TrackCard.jsx';
 import { useUserTracks } from '../hooks/UseUserTracksFeed.js';
+import TrackCard from '../components/TrackCard/TrackCard.jsx';
 
 export default function MyProfilePage() {
   const { user } = useAuth();

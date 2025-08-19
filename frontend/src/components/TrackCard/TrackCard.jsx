@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState, useMemo } from 'react';
-import LicenseModal from './LicenseModal.jsx';
-import { useCart } from './cart/CartProvider.jsx';
-import { useAuth } from '../auth/AuthProvider.jsx';
+import LicenseModal from '../LicenseModal.jsx';
+import { useCart } from '../cart/CartProvider.jsx';
+import { useAuth } from '../../auth/AuthProvider.jsx';
 import { Link } from 'react-router-dom';
+import './TrackCard.css'; // Import styles for TrackCard
 
 
 const DEFAULT_PRICE = 2999; // cents
@@ -75,15 +76,17 @@ export default function TrackCard({ track, isPlaying, onPlay, onPause }) {
   return (
     <div className="track-row">
       {/* Cover + Play/Pause Button */}
-      <div className="track-row__cover-wrapper">
+      <div className={`track-row__cover-wrapper ${isPlaying ? 'is-playing' : ''}`}>
         <img
           className="track-row__cover"
           src={track.coverUrl || 'https://placehold.co/300x300?text=Cover'}
           alt={track.title}
         />
-        <button className="play-btn" onClick={togglePlay}>
-          {isPlaying ? '⏸' : '▶'}
-        </button>
+        <div className="cover-overlay">
+          <button className="play-btn" onClick={togglePlay}>
+            {isPlaying ? '⏸' : '▶'}
+          </button>
+        </div>
         <audio ref={audioRef} src={track.audioUrl}></audio>
       </div>
 

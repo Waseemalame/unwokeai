@@ -7,20 +7,23 @@ import PublicProfilePage from './pages/PublicProfilePage.jsx';
 import MyProfilePage from './pages/MyProfilePage.jsx';
 import UploadBeat from './components/UploadBeat.jsx';
 import CheckoutPage from './pages/CheckoutPage.jsx';
-import Navbar from './components/Navbar.jsx';
+import Navbar from './components/Navbar/Navbar.jsx';
 import LikedTracks from './pages/LikedTracks.jsx';
-import './styles/overlays.css';
+// import './styles/overlays.css';
 import Messages from './pages/Messages.jsx';
 import TracksNewPage from './pages/TracksNewPage/TracksNewPage.jsx';
 import StudioLayout from './layouts/StudioLayout.jsx';
 import FileStoragePage from './pages/FileStoragePage/FileStoragePage.jsx';
+import ExploreTracksPage from './pages/ExploreTracks/ExploreTracksPage.jsx';
+import './styles/global.css'; // Import global styles
 
 export default function App() {
   return (
     <>
       <Navbar />
       <Routes>
-        <Route path="/" element={<FeedPage />} />
+        {/* <Route path="/" element={<FeedPage />} /> */}
+        <Route path="/" element={<ExploreTracksPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/users/:uid" element={<PublicProfilePage />} />
         <Route path="/@:handle" element={<PublicProfilePage />} />

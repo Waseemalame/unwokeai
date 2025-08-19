@@ -1,0 +1,141 @@
+.filters {
+  margin: 14px 0 10px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.faux-dd {
+  position: relative;
+}
+
+/* Main button */
+.faux-dd__btn {
+  background: var(--chip);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 500;
+  padding: 8px 14px;
+  border-radius: 20px;  /* pill shape */
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
+}
+
+.faux-dd__btn:hover {
+  background: #e2ebfb;              /* soft blue hover */
+  border-color: var(--accent);
+  box-shadow: 0 2px 6px rgba(58,102,247,0.12);
+}
+
+.faux-dd__btn .caret {
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+/* Dropdown menu */
+.faux-dd__menu {
+  position: absolute;
+  top: 120%;
+  left: 0;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px 0;
+  min-width: 160px;
+  z-index: 10;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+.faux-dd__item {
+  padding: 8px 14px;
+  font-size: 14px;
+  color: var(--muted);
+  cursor: default;
+}
+
+/* Spacer pushes view toggle to right */
+.filters__spacer {
+  flex: 1;
+}
+
+/* View toggle icons */
+.filters__view {
+  display: flex;
+  gap: 8px;
+}
+.icon-btn {
+  background: var(--chip);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 10px;
+  padding: 6px 10px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
+}
+.icon-btn:hover {
+  background: #e2ebfb;              /* soft blue hover */
+  border-color: var(--accent);
+  box-shadow: 0 2px 6px rgba(58,102,247,0.12);
+}
+
+/* ===================== */
+/* Mobile improvements   */
+/* ===================== */
+@media (max-width: 768px) {
+  .filters {
+    flex-wrap: nowrap;         /* no wrapping */
+    overflow-x: auto;          /* horizontal scroll */
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;     /* Firefox */
+    padding-bottom: 6px;
+  }
+  .filters::-webkit-scrollbar {
+    display: none;             /* Chrome/Safari */
+  }
+  .faux-dd,
+  .icon-btn {
+    flex: 0 0 auto;            /* prevent shrinking */
+    white-space: nowrap;
+  }
+}
+
+/* Hide desktop filters on mobile */
+.filters__desktop {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.filters__mobile {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .filters__desktop {
+    display: none;
+  }
+  .filters__mobile {
+    display: block;
+  }
+}
+
+/* More filters button */
+.more-filters-btn {
+  background: var(--chip);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 500;
+  padding: 8px 14px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+.more-filters-btn:hover {
+  background: #e2ebfb;
+  border-color: var(--accent);
+}
