@@ -16,6 +16,7 @@ import uploadsRouter from './routes/uploads.js';
 import checkoutRouter from './routes/checkout.js';
 import likesRouter from './routes/likes.js';
 import messagesRouter from './routes/messages.js';
+import filesRouter from './routes/files.js';
 import { notFound, errorHandler } from './middleware/error.js';
 import { attachSocket } from './realtime/socket.js';
 
@@ -56,6 +57,7 @@ app.use('/api', uploadsRouter);
 app.use('/api', checkoutRouter);
 app.use('/api', likesRouter);
 app.use('/api', messagesRouter);
+app.use('/api', filesRouter);
 
 // 5) static SPA
 app.use(express.static(path.join(__dirname, '../public')));

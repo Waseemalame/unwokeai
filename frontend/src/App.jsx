@@ -11,6 +11,9 @@ import Navbar from './components/Navbar.jsx';
 import LikedTracks from './pages/LikedTracks.jsx';
 import './styles/overlays.css';
 import Messages from './pages/Messages.jsx';
+import TracksNewPage from './pages/TracksNewPage/TracksNewPage.jsx';
+import StudioLayout from './layouts/StudioLayout.jsx';
+import FileStoragePage from './pages/FileStoragePage/FileStoragePage.jsx';
 
 export default function App() {
   return (
@@ -25,9 +28,11 @@ export default function App() {
 
         <Route element={<ProtectedRoute />}>
           <Route path="/me" element={<MyProfilePage />} />
-          <Route path="/upload" element={<UploadBeat />} />
+          {/* <Route path="/upload" element={<UploadBeat />} /> */}
           <Route path="/likes" element={<LikedTracks />} />
           <Route path="/messages" element={<Messages />} />
+          <Route path="/files/upload" element={<StudioLayout><FileStoragePage /></StudioLayout>} />
+          <Route path="/tracks/new" element={<StudioLayout><TracksNewPage /></StudioLayout>} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />

@@ -4,7 +4,9 @@ import { useAuth } from '../auth/AuthProvider.jsx';
 import { useCart } from './cart/CartProvider.jsx';
 import CartPopover from './CartPopover.jsx';
 import MessagesButton from './MessagesButton.jsx';
+import UploadTrigger from './UploadTrigger.jsx';
 import '../styles/nav.css';
+import CreateMenu from './CreateMenu/CreateMenu.jsx';
 
 function CartIcon() {
   return (
@@ -101,7 +103,9 @@ export default function Navbar() {
               onCheckout={onCheckout}
             />
           </div>
+
           <MessagesButton className="ghost" />
+
           {/* AUTH */}
           {loading ? (
             <div className="auth-actions">
@@ -111,17 +115,17 @@ export default function Navbar() {
             <div className="auth-actions">
               <Link to="/login" className="link">Sign up</Link><span className="sep">|</span>
               <Link to="/login" className="link">Sign in</Link>
-              <Link to="/upload" className="cta">Start Selling</Link>
             </div>
           ) : (
             <div className="user-menu">
-              <button 
-                className="avatar" 
-                onClick={() => navigate('/me')} 
+              <button
+                className="avatar"
+                onClick={() => navigate('/me')}
                 title={user.displayName || user.email}
               >
                 {initials}
               </button>
+              <CreateMenu />
               <button className="ghost" onClick={onLogout}>Sign out</button>
             </div>
           )}
